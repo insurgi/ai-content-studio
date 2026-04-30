@@ -1,5 +1,5 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Sparkles, FileText, Calendar, Users, Clapperboard, BarChart3, TrendingUp, Eye, Heart, MessageCircle, Share2, Upload, Mic, Wand2, Check, Plus, Play, Trash2, X, Pause, SkipBack, SkipForward, Scissors, Type, Music, Image as ImageIcon, Film, Layers, Volume2, Download, Maximize2, ZoomIn, ZoomOut } from "lucide-react";
 import { login, getUser, logout } from "@/lib/auth";
 import { mockStats, mockActivity, mockScripts, platformMeta, streamScript, mockAnalyticsTrend, mockTopVideos, mockTwins } from "@/lib/mock-data";
