@@ -1,8 +1,8 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
-import { Sparkles, FileText, Calendar, Users, Clapperboard, BarChart3, TrendingUp, Eye, Heart, MessageCircle, Share2 } from "lucide-react";
+import { Sparkles, FileText, Calendar, Users, Clapperboard, BarChart3, TrendingUp, Eye, Heart, MessageCircle, Share2, Upload, Mic, Wand2, Check, Plus, Play, Trash2, X } from "lucide-react";
 import { login, getUser, logout } from "@/lib/auth";
-import { mockStats, mockActivity, mockScripts, platformMeta, streamScript, mockAnalyticsTrend, mockTopVideos } from "@/lib/mock-data";
+import { mockStats, mockActivity, mockScripts, platformMeta, streamScript, mockAnalyticsTrend, mockTopVideos, mockTwins } from "@/lib/mock-data";
 import { AreaChart, Area, BarChart, Bar, PieChart, Pie, Cell, RadialBarChart, RadialBar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from "recharts";
 
 export const Route = createFileRoute("/login")({
@@ -118,7 +118,7 @@ function Shell() {
           {view === "home" && <Home />}
           {view === "scripts" && <Scripts />}
           {view === "calendar" && <CalendarView />}
-          {view === "twins" && <Placeholder title="AI Twins" desc="Manage your AI twin personas. (Coming next iteration.)" />}
+          {view === "twins" && <Twins />}
           {view === "studio" && <Placeholder title="Video Studio" desc="3-panel render workspace. (Coming next iteration.)" />}
           {view === "analytics" && <Analytics />}
         </main>
