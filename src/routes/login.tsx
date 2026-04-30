@@ -1,6 +1,6 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
-import { Sparkles, FileText, Calendar, Users, Clapperboard, BarChart3, TrendingUp, Eye, Heart, MessageCircle, Share2, Upload, Mic, Wand2, Check, Plus, Play, Trash2, X } from "lucide-react";
+import { Sparkles, FileText, Calendar, Users, Clapperboard, BarChart3, TrendingUp, Eye, Heart, MessageCircle, Share2, Upload, Mic, Wand2, Check, Plus, Play, Trash2, X, Pause, SkipBack, SkipForward, Scissors, Type, Music, Image as ImageIcon, Film, Layers, Volume2, Download, Maximize2, ZoomIn, ZoomOut } from "lucide-react";
 import { login, getUser, logout } from "@/lib/auth";
 import { mockStats, mockActivity, mockScripts, platformMeta, streamScript, mockAnalyticsTrend, mockTopVideos, mockTwins } from "@/lib/mock-data";
 import { AreaChart, Area, BarChart, Bar, PieChart, Pie, Cell, RadialBarChart, RadialBar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from "recharts";
@@ -119,7 +119,7 @@ function Shell() {
           {view === "scripts" && <Scripts />}
           {view === "calendar" && <CalendarView />}
           {view === "twins" && <Twins />}
-          {view === "studio" && <Placeholder title="Video Studio" desc="3-panel render workspace. (Coming next iteration.)" />}
+          {view === "studio" && <Studio />}
           {view === "analytics" && <Analytics />}
         </main>
       </div>
