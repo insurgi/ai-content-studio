@@ -590,7 +590,7 @@ function TwinCreator({ onClose, onCreate, existing }: { onClose: () => void; onC
   const [progress, setProgress] = useState(0);
 
   const styleObj = styleOptions.find((s) => s.id === draft.style)!;
-  const canNext = step === 1 ? draft.source !== "" : step === 2 ? draft.style && draft.voice : step === 3 ? draft.name.trim().length > 0 : true;
+  const canNext = step === 1 ? !!draft.source : step === 2 ? !!(draft.style && draft.voice) : step === 3 ? draft.name.trim().length > 0 : true;
 
   const finalize = async () => {
     setTraining(true);
