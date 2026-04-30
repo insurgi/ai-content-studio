@@ -870,7 +870,7 @@ function Studio() {
   const [tab, setTab] = useState<"twins" | "broll" | "music" | "text">("twins");
 
   // Playhead animation
-  React.useEffect(() => {
+  useEffect(() => {
     if (!playing) return;
     const id = setInterval(() => {
       setTime((t) => {
