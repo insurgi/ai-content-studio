@@ -2,6 +2,8 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { Plus, Play, Trash2, X, Wand2, Sparkles, Upload, Mic, Check } from "lucide-react";
 import { useTwins, useCreateTwin, useDeleteTwin } from "@/lib/hooks/useTwins";
+import { useRenderJob } from "@/lib/hooks/useRenderJob";
+import { apiFetch } from "@/lib/api";
 import { mockTwins } from "@/lib/mock-data";
 
 export const Route = createFileRoute("/dashboard/twins")({
@@ -153,6 +155,7 @@ function TwinCreator({
   existing?: (typeof mockTwins)[number];
 }) {
   const createTwinMutation = useCreateTwin();
+  const renderJobMutation = useRenderJob();
   const [step, setStep] = useState(1);
   const [draft, setDraft] = useState<TwinDraft>({
     name: existing?.name ?? "",
@@ -178,29 +181,46 @@ function TwinCreator({
 
   const finalize = async () => {
     setTraining(true);
-    for (let p = 0; p <= 80; p += 4) {
-      await new Promise((r) => setTimeout(r, 60));
-      setProgress(p);
-    }
+    const twinId = existing?.id ?? `t${Date.now()}`;
     const localTwin = {
-      id: existing?.id ?? `t${Date.now()}`,
+      id: twinId,
       name: draft.name,
       style: draft.style,
       voice: draft.voice,
       videos: existing?.videos ?? 0,
       color: styleObj.grad,
     };
-    try {
-      await createTwinMutation.mutateAsync({
+
+    // Fire real API calls concurrently; fall back silently in demo mode
+    const apiCalls = Promise.allSettled([
+      createTwinMutation.mutateAsync({
         name: draft.name,
         style: draft.style,
-        voice_id: draft.voice,
+        voice_id: draft.voice.toLowerCase().replace(" ", "-"),
         style_tags: [draft.style, draft.niche].filter(Boolean),
         persona_prompt: draft.catchphrase || undefined,
-      });
-    } catch {
-      // Falls back to local state when API unavailable (demo mode)
+      }),
+      renderJobMutation.mutateAsync({
+        twin_id: twinId,
+        script: draft.catchphrase || `I'm ${draft.name}. ${draft.style} style creator.`,
+        voice_id: draft.voice.toLowerCase().replace(" ", "-"),
+      }),
+      apiFetch("/agents", {
+        method: "POST",
+        body: JSON.stringify({
+          name: draft.name,
+          twin_id: twinId,
+          persona_prompt: draft.catchphrase || `${draft.style} creator`,
+        }),
+      }),
+    ]);
+
+    // Animate progress while APIs run
+    for (let p = 0; p <= 90; p += 3) {
+      await new Promise((r) => setTimeout(r, 55));
+      setProgress(p);
     }
+    await apiCalls;
     setProgress(100);
     await new Promise((r) => setTimeout(r, 200));
     onCreate(localTwin);

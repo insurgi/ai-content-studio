@@ -192,6 +192,13 @@ export const handlers = [
     HttpResponse.json({ job_id: `job-${Date.now()}` }, { status: 201 })
   ),
 
+  http.get(`${BASE}/agents`, () =>
+    HttpResponse.json([
+      { agent_id: "agent-t1", name: "Professional Sarah", twin_id: "t1", persona_prompt: "Corporate creator" },
+      { agent_id: "agent-t2", name: "Energetic Alex", twin_id: "t2", persona_prompt: "Bold creator" },
+    ])
+  ),
+
   http.post(`${BASE}/agents`, async ({ request }) => {
     const body = await request.json() as Record<string, unknown>;
     return HttpResponse.json({ agent_id: `agent-${Date.now()}`, ...body }, { status: 201 });

@@ -1,6 +1,6 @@
 import { createFileRoute, Outlet, Link, redirect, useNavigate, useRouterState } from "@tanstack/react-router";
 import { useState } from "react";
-import { Sparkles, FileText, Calendar, Users, Clapperboard, BarChart3, Menu } from "lucide-react";
+import { Sparkles, FileText, Calendar, Users, Clapperboard, BarChart3, Menu, Send, Layers, Settings } from "lucide-react";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { getUser, logout } from "@/lib/auth";
 import { useCredits } from "@/lib/hooks/useCredits";
@@ -19,7 +19,10 @@ const navItems = [
   { to: "/dashboard/calendar" as const, label: "Calendar", icon: Calendar },
   { to: "/dashboard/twins" as const, label: "AI Twins", icon: Users },
   { to: "/dashboard/studio" as const, label: "Studio", icon: Clapperboard },
+  { to: "/dashboard/bulk" as const, label: "Bulk Reels", icon: Layers },
+  { to: "/dashboard/publish" as const, label: "Publish", icon: Send },
   { to: "/dashboard/analytics" as const, label: "Analytics", icon: BarChart3 },
+  { to: "/dashboard/settings" as const, label: "Settings", icon: Settings },
 ];
 
 function usePageTitle(pathname: string) {
@@ -27,7 +30,10 @@ function usePageTitle(pathname: string) {
   if (pathname.includes("/calendar")) return "Calendar";
   if (pathname.includes("/twins")) return "AI Twins";
   if (pathname.includes("/studio")) return "Studio";
+  if (pathname.includes("/bulk")) return "Bulk Reels";
+  if (pathname.includes("/publish")) return "Publish";
   if (pathname.includes("/analytics")) return "Analytics";
+  if (pathname.includes("/settings")) return "Settings";
   return "Home";
 }
 

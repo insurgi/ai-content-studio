@@ -46,7 +46,8 @@ export const mockTwins = [
 
 export const mockCalendarEvents = (() => {
   const today = new Date();
-  const items: { id: string; title: string; date: Date; platform: Platform; status: string }[] = [];
+  const statuses = ["scheduled", "draft", "published"] as const;
+  const items: { id: string; title: string; date: Date; platform: Platform; status: typeof statuses[number] }[] = [];
   const titles = ["Morning Hacks", "AI Basics", "Cold Email", "Productivity", "Deep Work", "Creator Tips", "Quick Win", "Mindset Shift"];
   for (let i = 0; i < 18; i++) {
     const offset = Math.floor(Math.random() * 28) - 7;
@@ -58,7 +59,7 @@ export const mockCalendarEvents = (() => {
       title: titles[i % titles.length] + (i > 7 ? ` v${Math.floor(i / 8) + 1}` : ""),
       date: d,
       platform: platforms[i % 4],
-      status: ["scheduled", "draft", "published"][i % 3],
+      status: statuses[i % 3],
     });
   }
   return items;

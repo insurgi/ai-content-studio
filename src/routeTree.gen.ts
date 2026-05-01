@@ -15,8 +15,11 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as DashboardIndexRouteImport } from './routes/dashboard/index'
 import { Route as DashboardTwinsRouteImport } from './routes/dashboard/twins'
 import { Route as DashboardStudioRouteImport } from './routes/dashboard/studio'
+import { Route as DashboardSettingsRouteImport } from './routes/dashboard/settings'
 import { Route as DashboardScriptsRouteImport } from './routes/dashboard/scripts'
+import { Route as DashboardPublishRouteImport } from './routes/dashboard/publish'
 import { Route as DashboardCalendarRouteImport } from './routes/dashboard/calendar'
+import { Route as DashboardBulkRouteImport } from './routes/dashboard/bulk'
 import { Route as DashboardAnalyticsRouteImport } from './routes/dashboard/analytics'
 
 const LoginRoute = LoginRouteImport.update({
@@ -49,14 +52,29 @@ const DashboardStudioRoute = DashboardStudioRouteImport.update({
   path: '/studio',
   getParentRoute: () => DashboardRoute,
 } as any)
+const DashboardSettingsRoute = DashboardSettingsRouteImport.update({
+  id: '/settings',
+  path: '/settings',
+  getParentRoute: () => DashboardRoute,
+} as any)
 const DashboardScriptsRoute = DashboardScriptsRouteImport.update({
   id: '/scripts',
   path: '/scripts',
   getParentRoute: () => DashboardRoute,
 } as any)
+const DashboardPublishRoute = DashboardPublishRouteImport.update({
+  id: '/publish',
+  path: '/publish',
+  getParentRoute: () => DashboardRoute,
+} as any)
 const DashboardCalendarRoute = DashboardCalendarRouteImport.update({
   id: '/calendar',
   path: '/calendar',
+  getParentRoute: () => DashboardRoute,
+} as any)
+const DashboardBulkRoute = DashboardBulkRouteImport.update({
+  id: '/bulk',
+  path: '/bulk',
   getParentRoute: () => DashboardRoute,
 } as any)
 const DashboardAnalyticsRoute = DashboardAnalyticsRouteImport.update({
@@ -70,8 +88,11 @@ export interface FileRoutesByFullPath {
   '/dashboard': typeof DashboardRouteWithChildren
   '/login': typeof LoginRoute
   '/dashboard/analytics': typeof DashboardAnalyticsRoute
+  '/dashboard/bulk': typeof DashboardBulkRoute
   '/dashboard/calendar': typeof DashboardCalendarRoute
+  '/dashboard/publish': typeof DashboardPublishRoute
   '/dashboard/scripts': typeof DashboardScriptsRoute
+  '/dashboard/settings': typeof DashboardSettingsRoute
   '/dashboard/studio': typeof DashboardStudioRoute
   '/dashboard/twins': typeof DashboardTwinsRoute
   '/dashboard/': typeof DashboardIndexRoute
@@ -80,8 +101,11 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
   '/dashboard/analytics': typeof DashboardAnalyticsRoute
+  '/dashboard/bulk': typeof DashboardBulkRoute
   '/dashboard/calendar': typeof DashboardCalendarRoute
+  '/dashboard/publish': typeof DashboardPublishRoute
   '/dashboard/scripts': typeof DashboardScriptsRoute
+  '/dashboard/settings': typeof DashboardSettingsRoute
   '/dashboard/studio': typeof DashboardStudioRoute
   '/dashboard/twins': typeof DashboardTwinsRoute
   '/dashboard': typeof DashboardIndexRoute
@@ -92,8 +116,11 @@ export interface FileRoutesById {
   '/dashboard': typeof DashboardRouteWithChildren
   '/login': typeof LoginRoute
   '/dashboard/analytics': typeof DashboardAnalyticsRoute
+  '/dashboard/bulk': typeof DashboardBulkRoute
   '/dashboard/calendar': typeof DashboardCalendarRoute
+  '/dashboard/publish': typeof DashboardPublishRoute
   '/dashboard/scripts': typeof DashboardScriptsRoute
+  '/dashboard/settings': typeof DashboardSettingsRoute
   '/dashboard/studio': typeof DashboardStudioRoute
   '/dashboard/twins': typeof DashboardTwinsRoute
   '/dashboard/': typeof DashboardIndexRoute
@@ -105,8 +132,11 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/login'
     | '/dashboard/analytics'
+    | '/dashboard/bulk'
     | '/dashboard/calendar'
+    | '/dashboard/publish'
     | '/dashboard/scripts'
+    | '/dashboard/settings'
     | '/dashboard/studio'
     | '/dashboard/twins'
     | '/dashboard/'
@@ -115,8 +145,11 @@ export interface FileRouteTypes {
     | '/'
     | '/login'
     | '/dashboard/analytics'
+    | '/dashboard/bulk'
     | '/dashboard/calendar'
+    | '/dashboard/publish'
     | '/dashboard/scripts'
+    | '/dashboard/settings'
     | '/dashboard/studio'
     | '/dashboard/twins'
     | '/dashboard'
@@ -126,8 +159,11 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/login'
     | '/dashboard/analytics'
+    | '/dashboard/bulk'
     | '/dashboard/calendar'
+    | '/dashboard/publish'
     | '/dashboard/scripts'
+    | '/dashboard/settings'
     | '/dashboard/studio'
     | '/dashboard/twins'
     | '/dashboard/'
@@ -183,6 +219,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardStudioRouteImport
       parentRoute: typeof DashboardRoute
     }
+    '/dashboard/settings': {
+      id: '/dashboard/settings'
+      path: '/settings'
+      fullPath: '/dashboard/settings'
+      preLoaderRoute: typeof DashboardSettingsRouteImport
+      parentRoute: typeof DashboardRoute
+    }
     '/dashboard/scripts': {
       id: '/dashboard/scripts'
       path: '/scripts'
@@ -190,11 +233,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardScriptsRouteImport
       parentRoute: typeof DashboardRoute
     }
+    '/dashboard/publish': {
+      id: '/dashboard/publish'
+      path: '/publish'
+      fullPath: '/dashboard/publish'
+      preLoaderRoute: typeof DashboardPublishRouteImport
+      parentRoute: typeof DashboardRoute
+    }
     '/dashboard/calendar': {
       id: '/dashboard/calendar'
       path: '/calendar'
       fullPath: '/dashboard/calendar'
       preLoaderRoute: typeof DashboardCalendarRouteImport
+      parentRoute: typeof DashboardRoute
+    }
+    '/dashboard/bulk': {
+      id: '/dashboard/bulk'
+      path: '/bulk'
+      fullPath: '/dashboard/bulk'
+      preLoaderRoute: typeof DashboardBulkRouteImport
       parentRoute: typeof DashboardRoute
     }
     '/dashboard/analytics': {
@@ -209,8 +266,11 @@ declare module '@tanstack/react-router' {
 
 interface DashboardRouteChildren {
   DashboardAnalyticsRoute: typeof DashboardAnalyticsRoute
+  DashboardBulkRoute: typeof DashboardBulkRoute
   DashboardCalendarRoute: typeof DashboardCalendarRoute
+  DashboardPublishRoute: typeof DashboardPublishRoute
   DashboardScriptsRoute: typeof DashboardScriptsRoute
+  DashboardSettingsRoute: typeof DashboardSettingsRoute
   DashboardStudioRoute: typeof DashboardStudioRoute
   DashboardTwinsRoute: typeof DashboardTwinsRoute
   DashboardIndexRoute: typeof DashboardIndexRoute
@@ -218,8 +278,11 @@ interface DashboardRouteChildren {
 
 const DashboardRouteChildren: DashboardRouteChildren = {
   DashboardAnalyticsRoute: DashboardAnalyticsRoute,
+  DashboardBulkRoute: DashboardBulkRoute,
   DashboardCalendarRoute: DashboardCalendarRoute,
+  DashboardPublishRoute: DashboardPublishRoute,
   DashboardScriptsRoute: DashboardScriptsRoute,
+  DashboardSettingsRoute: DashboardSettingsRoute,
   DashboardStudioRoute: DashboardStudioRoute,
   DashboardTwinsRoute: DashboardTwinsRoute,
   DashboardIndexRoute: DashboardIndexRoute,
