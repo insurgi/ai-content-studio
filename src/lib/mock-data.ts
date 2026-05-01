@@ -64,11 +64,19 @@ export const mockCalendarEvents = (() => {
   return items;
 })();
 
-export const mockAnalyticsTrend = Array.from({ length: 30 }, (_, i) => ({
-  day: `${i + 1}`,
-  views: Math.floor(2000 + Math.random() * 8000 + i * 200),
-  engagement: Math.floor(200 + Math.random() * 800 + i * 30),
-}));
+export const mockAnalyticsTrend = Array.from({ length: 30 }, (_, i) => {
+  const d = new Date();
+  d.setDate(d.getDate() - (29 - i));
+  return {
+    platform: "tiktok" as Platform,
+    date: d.toISOString().slice(0, 10),
+    views: Math.floor(2000 + i * 200),
+    likes: Math.floor(200 + i * 30),
+    comments: Math.floor(50 + i * 5),
+    shares: Math.floor(30 + i * 8),
+    followers_gained: Math.floor(10 + i * 3),
+  };
+});
 
 export const mockTopVideos = [
   { title: "Morning Routine Hacks", platform: "tiktok" as Platform, views: 142830, likes: 12430, eng: 8.7, twin: "Energetic Alex" },
