@@ -3,8 +3,13 @@ import { useState, useEffect } from "react";
 import {
   Film, Type, Music, Users, Image as ImageIcon, Wand2, Layers, Scissors, Trash2,
   Upload, Plus, Play, Pause, SkipBack, SkipForward, ZoomIn, ZoomOut,
-  Download, Maximize2, Volume2,
+  Download, Maximize2, Volume2, Mic, CheckCircle2, AlertCircle, Loader2,
 } from "lucide-react";
+import { Progress } from "@/components/ui/progress";
+import { useRenderJob } from "@/lib/hooks/useRenderJob";
+import { useTask } from "@/lib/hooks/useTask";
+import { useTTS } from "@/lib/hooks/useTTS";
+import { useGenerateCaptions, useCaption } from "@/lib/hooks/useCaptions";
 
 export const Route = createFileRoute("/dashboard/studio")({
   component: Studio,
@@ -64,6 +69,46 @@ const tracks: { id: Clip["track"]; label: string; icon: React.ComponentType<{ cl
   { id: "audio", label: "Audio", icon: Music },
 ];
 
+function RenderProgress({ jobId, onClose }: { jobId: string; onClose: () => void }) {
+  const { data: task } = useTask<{ url?: string; download_url?: string }>(jobId);
+  const progress = task?.progress ?? 0;
+  const status = task?.status ?? "queued";
+  const downloadUrl = task?.result?.url ?? task?.result?.download_url;
+
+  return (
+    <div className="fixed inset-x-0 bottom-0 z-50 border-t border-border bg-card/95 backdrop-blur px-6 py-4">
+      <div className="max-w-xl mx-auto">
+        <div className="flex items-center justify-between mb-2">
+          <div className="flex items-center gap-2 text-sm font-medium">
+            {status === "done" ? (
+              <CheckCircle2 className="h-4 w-4 text-green-400" />
+            ) : status === "error" ? (
+              <AlertCircle className="h-4 w-4 text-destructive" />
+            ) : (
+              <Loader2 className="h-4 w-4 animate-spin text-primary" />
+            )}
+            {status === "done" ? "Render complete" : status === "error" ? "Render failed" : "Rendering reel…"}
+          </div>
+          <button onClick={onClose} className="text-xs text-muted-foreground hover:text-foreground">Dismiss</button>
+        </div>
+        <Progress value={progress} className="h-1.5" />
+        <div className="flex items-center justify-between mt-2 text-xs text-muted-foreground">
+          <span>{progress}% complete</span>
+          {downloadUrl && (
+            <a
+              href={downloadUrl}
+              download
+              className="flex items-center gap-1 text-primary font-medium hover:underline"
+            >
+              <Download className="h-3.5 w-3.5" /> Download MP4
+            </a>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function Studio() {
   const totalDuration = 18;
   const [clips, setClips] = useState<Clip[]>(initialClips);
@@ -72,6 +117,14 @@ function Studio() {
   const [time, setTime] = useState(0);
   const [zoom, setZoom] = useState(40);
   const [tab, setTab] = useState<"twins" | "broll" | "music" | "text">("twins");
+  const [jobId, setJobId] = useState<string | null>(null);
+  const [ttsText, setTtsText] = useState("Stop scrolling. Here are three productivity hacks.");
+  const [captionId, setCaptionId] = useState<string | null>(null);
+
+  const renderJob = useRenderJob();
+  const tts = useTTS();
+  const generateCaptions = useGenerateCaptions();
+  const { data: captionResult } = useCaption(captionId);
 
   useEffect(() => {
     if (!playing) return;
@@ -96,8 +149,42 @@ function Studio() {
     if (selected === id) setSelected(null);
   };
 
+  const handleRender = async () => {
+    try {
+      const res = await renderJob.mutateAsync({
+        twin_id: "t1",
+        script: clips.filter((c) => c.track === "text").map((c) => c.label).join(" "),
+        voice_id: "pro-female",
+        caption_style: "overlay",
+      });
+      setJobId(res.job_id);
+    } catch {
+      // demo mode — show mock progress
+      setJobId("demo-job");
+    }
+  };
+
+  const handleGenerateVoiceover = async () => {
+    try {
+      const res = await tts.mutateAsync({ text: ttsText, voice_id: "pro-female" });
+      if (res.audio_url) window.open(res.audio_url, "_blank");
+    } catch { /* demo mode */ }
+  };
+
+  const handleAutoCaptions = async (enabled: boolean) => {
+    if (!enabled || captionId) return;
+    try {
+      const res = await generateCaptions.mutateAsync({
+        reelUrl: "https://example.com/demo-reel.mp4",
+        language: "en",
+      });
+      setCaptionId(res.caption_id);
+    } catch { /* demo mode */ }
+  };
+
   return (
-    <div className="-mx-6 -my-6 h-[calc(100vh-3.5rem)] flex flex-col bg-background">
+    <div className="-mx-4 md:-mx-6 -my-6 h-[calc(100vh-3.5rem)] flex flex-col bg-background">
+      {/* Toolbar */}
       <div className="h-12 border-b border-border flex items-center justify-between px-4 shrink-0">
         <div className="flex items-center gap-2">
           <input
@@ -113,12 +200,21 @@ function Studio() {
           <button className="h-8 px-3 text-xs rounded-lg border border-border hover:bg-secondary flex items-center gap-1.5">
             <Wand2 className="h-3.5 w-3.5" /> Auto-edit
           </button>
-          <button className="h-8 px-3.5 text-xs rounded-lg bg-gradient-primary text-white font-medium hover:opacity-90 shadow-glow flex items-center gap-1.5">
-            <Download className="h-3.5 w-3.5" /> Render
+          <button
+            onClick={handleRender}
+            disabled={renderJob.isPending}
+            className="h-8 px-3.5 text-xs rounded-lg bg-gradient-primary text-white font-medium hover:opacity-90 shadow-glow flex items-center gap-1.5 disabled:opacity-60"
+          >
+            {renderJob.isPending
+              ? <Loader2 className="h-3.5 w-3.5 animate-spin" />
+              : <Download className="h-3.5 w-3.5" />
+            }
+            {renderJob.isPending ? "Submitting…" : "Render"}
           </button>
         </div>
       </div>
 
+      {/* 3-panel body */}
       <div className="flex-1 grid grid-cols-[260px_1fr_300px] min-h-0">
         {/* LEFT: Asset library */}
         <div className="border-r border-border flex flex-col min-h-0">
@@ -148,10 +244,7 @@ function Studio() {
             {tab === "twins" && (
               <div className="grid grid-cols-2 gap-2">
                 {assetLib.twins.map((t) => (
-                  <button
-                    key={t.id}
-                    className={`group rounded-lg overflow-hidden border border-border hover:border-primary/40 bg-gradient-to-br ${t.grad} aspect-square relative`}
-                  >
+                  <button key={t.id} className={`group rounded-lg overflow-hidden border border-border hover:border-primary/40 bg-gradient-to-br ${t.grad} aspect-square relative`}>
                     <div className="absolute inset-0 bg-black/20" />
                     <div className="absolute bottom-1.5 left-1.5 right-1.5 text-[11px] font-medium text-white drop-shadow">{t.name}</div>
                     <div className="absolute top-1.5 right-1.5 h-5 w-5 rounded bg-black/40 backdrop-blur grid place-items-center opacity-0 group-hover:opacity-100">
@@ -164,10 +257,7 @@ function Studio() {
             {tab === "broll" && (
               <div className="grid grid-cols-2 gap-2">
                 {assetLib.broll.map((b) => (
-                  <button
-                    key={b.id}
-                    className={`group rounded-lg overflow-hidden border border-border hover:border-primary/40 bg-gradient-to-br ${b.grad} aspect-video relative`}
-                  >
+                  <button key={b.id} className={`group rounded-lg overflow-hidden border border-border hover:border-primary/40 bg-gradient-to-br ${b.grad} aspect-video relative`}>
                     <div className="absolute inset-0 bg-black/20" />
                     <div className="absolute bottom-1 left-1.5 text-[10px] text-white/90">{b.label}</div>
                   </button>
@@ -211,18 +301,13 @@ function Studio() {
         {/* CENTER: Preview + transport */}
         <div className="flex flex-col min-h-0 bg-[oklch(0.12_0.01_265)]">
           <div className="flex-1 grid place-items-center p-6 min-h-0">
-            <div
-              className="relative bg-black rounded-xl overflow-hidden shadow-glow"
-              style={{ aspectRatio: "9 / 16", height: "min(100%, 70vh)" }}
-            >
+            <div className="relative bg-black rounded-xl overflow-hidden shadow-glow" style={{ aspectRatio: "9 / 16", height: "min(100%, 70vh)" }}>
               {activeVideo ? (
                 <div className={`absolute inset-0 bg-gradient-to-br ${activeVideo.color}`}>
                   <div className="absolute inset-0 bg-black/30" />
                 </div>
               ) : (
-                <div className="absolute inset-0 grid place-items-center text-muted-foreground text-xs">
-                  No clip at playhead
-                </div>
+                <div className="absolute inset-0 grid place-items-center text-muted-foreground text-xs">No clip at playhead</div>
               )}
               {activeText && (
                 <div className="absolute inset-x-4 bottom-16 text-center">
@@ -278,10 +363,7 @@ function Studio() {
                   <Scissors className="h-3 w-3" /> Split
                 </button>
                 {selected && (
-                  <button
-                    onClick={() => removeClip(selected)}
-                    className="h-6 px-2 text-[10px] rounded hover:bg-destructive/20 hover:text-destructive flex items-center gap-1"
-                  >
+                  <button onClick={() => removeClip(selected)} className="h-6 px-2 text-[10px] rounded hover:bg-destructive/20 hover:text-destructive flex items-center gap-1">
                     <Trash2 className="h-3 w-3" /> Delete
                   </button>
                 )}
@@ -325,10 +407,7 @@ function Studio() {
                     </div>
                   );
                 })}
-                <div
-                  className="absolute top-0 bottom-0 w-px bg-primary z-20 pointer-events-none"
-                  style={{ left: 80 + time * zoom }}
-                >
+                <div className="absolute top-0 bottom-0 w-px bg-primary z-20 pointer-events-none" style={{ left: 80 + time * zoom }}>
                   <div className="absolute -top-0.5 -left-1.5 h-3 w-3 rotate-45 bg-primary" />
                 </div>
               </div>
@@ -354,31 +433,72 @@ function Studio() {
                 </div>
                 <Slider label="Opacity" left="0" right="100" value={100} onChange={() => {}} />
                 <Slider label="Volume" left="0" right="100" value={sel.track === "audio" ? 80 : 100} onChange={() => {}} />
+
+                {/* TTS Voiceover — shown for audio clips */}
+                {sel.track === "audio" && (
+                  <div className="rounded-lg border border-border bg-secondary/30 p-3 space-y-2">
+                    <div className="text-[10px] uppercase tracking-wide text-muted-foreground font-medium">Generate Voiceover</div>
+                    <textarea
+                      value={ttsText}
+                      onChange={(e) => setTtsText(e.target.value)}
+                      rows={3}
+                      className="w-full bg-background border border-border rounded-md px-2 py-1.5 text-xs resize-none focus:outline-none focus:ring-2 focus:ring-primary/40"
+                    />
+                    <button
+                      onClick={handleGenerateVoiceover}
+                      disabled={tts.isPending}
+                      className="w-full flex items-center justify-center gap-1.5 text-xs py-1.5 rounded-md bg-primary text-white hover:opacity-90 disabled:opacity-60"
+                    >
+                      {tts.isPending ? <Loader2 className="h-3 w-3 animate-spin" /> : <Mic className="h-3 w-3" />}
+                      {tts.isPending ? "Generating…" : "Generate"}
+                    </button>
+                    {tts.isSuccess && (
+                      <p className="text-[10px] text-green-400 flex items-center gap-1">
+                        <CheckCircle2 className="h-3 w-3" /> Audio ready
+                      </p>
+                    )}
+                  </div>
+                )}
+
                 <div>
                   <div className="text-[10px] uppercase tracking-wide text-muted-foreground mb-2">Transition in</div>
                   <div className="grid grid-cols-3 gap-1.5">
                     {["None", "Fade", "Slide", "Zoom", "Wipe", "Glitch"].map((t, i) => (
-                      <button
-                        key={t}
-                        className={`text-[11px] py-1.5 rounded border transition ${
-                          i === 1 ? "border-primary bg-primary/10" : "border-border hover:border-primary/40 text-muted-foreground"
-                        }`}
-                      >
+                      <button key={t} className={`text-[11px] py-1.5 rounded border transition ${i === 1 ? "border-primary bg-primary/10" : "border-border hover:border-primary/40 text-muted-foreground"}`}>
                         {t}
                       </button>
                     ))}
                   </div>
                 </div>
+
                 <div>
                   <div className="text-[10px] uppercase tracking-wide text-muted-foreground mb-2">Effects</div>
                   <div className="space-y-1.5">
-                    {["Auto-captions", "Shake on beat", "Background blur"].map((e, i) => (
-                      <label key={e} className="flex items-center justify-between text-xs p-2 rounded-md bg-secondary/40 border border-border">
-                        <span>{e}</span>
-                        <input type="checkbox" defaultChecked={i === 0} className="accent-primary h-3.5 w-3.5" />
+                    {["Auto-captions", "Shake on beat", "Background blur"].map((effect, i) => (
+                      <label key={effect} className="flex items-center justify-between text-xs p-2 rounded-md bg-secondary/40 border border-border">
+                        <span>{effect}</span>
+                        <input
+                          type="checkbox"
+                          defaultChecked={i === 0}
+                          className="accent-primary h-3.5 w-3.5"
+                          onChange={i === 0 ? (e) => handleAutoCaptions(e.target.checked) : undefined}
+                        />
                       </label>
                     ))}
                   </div>
+                  {captionId && captionResult && (
+                    <div className="mt-2 text-[10px] text-muted-foreground rounded-md bg-secondary/40 p-2">
+                      {captionResult.status === "done" ? (
+                        <span className="text-green-400 flex items-center gap-1">
+                          <CheckCircle2 className="h-3 w-3" /> Captions ready · {captionResult.segments?.length ?? 0} segments
+                        </span>
+                      ) : (
+                        <span className="flex items-center gap-1">
+                          <Loader2 className="h-3 w-3 animate-spin" /> Generating captions…
+                        </span>
+                      )}
+                    </div>
+                  )}
                 </div>
               </>
             ) : (
@@ -395,6 +515,8 @@ function Studio() {
           </div>
         </div>
       </div>
+
+      {jobId && <RenderProgress jobId={jobId} onClose={() => setJobId(null)} />}
     </div>
   );
 }
@@ -408,14 +530,7 @@ function Slider({ label, left, right, value, onChange }: {
         <span className="font-medium">{label}</span>
         <span className="text-muted-foreground tabular-nums">{value}</span>
       </div>
-      <input
-        type="range"
-        min={0}
-        max={100}
-        value={value}
-        onChange={(e) => onChange(Number(e.target.value))}
-        className="w-full mt-2 accent-primary"
-      />
+      <input type="range" min={0} max={100} value={value} onChange={(e) => onChange(Number(e.target.value))} className="w-full mt-2 accent-primary" />
       <div className="flex justify-between text-[11px] text-muted-foreground -mt-1">
         <span>{left}</span><span>{right}</span>
       </div>
@@ -427,13 +542,7 @@ function NumField({ label, value, onChange }: { label: string; value: number; on
   return (
     <div>
       <label className="text-[10px] uppercase tracking-wide text-muted-foreground">{label}</label>
-      <input
-        type="number"
-        step={0.1}
-        value={value}
-        onChange={(e) => onChange(Number(e.target.value))}
-        className="mt-1 w-full bg-background border border-border rounded-md px-2 py-1.5 text-sm tabular-nums focus:outline-none focus:ring-2 focus:ring-primary/40"
-      />
+      <input type="number" step={0.1} value={value} onChange={(e) => onChange(Number(e.target.value))} className="mt-1 w-full bg-background border border-border rounded-md px-2 py-1.5 text-sm tabular-nums focus:outline-none focus:ring-2 focus:ring-primary/40" />
     </div>
   );
 }
